@@ -14,17 +14,21 @@ from django.dispatch import receiver
 # keyboard_open(_id) - means that request contains payload with keyboard id which needs to send back
 # define your answers here
 
+@receiver(callback_signals)
+def keyboard_opener(request, *args, **kwargs):
+    """
+    Default callback, when user press button, with payload which contains params { type = keyboard, id = int},
+    change user keyboard to new keyboard, supports only saved keyboards.
 
+    Don't delete this if you want to use modular keyboards.
+    """
+    CallBack.keyboard_open(request)
+
+# Examples
 @receiver(callback_signals)
 @CallBack.message_new
 def test(request, *args, **kwargs):
     print('Message_new called!')
-
-
-@receiver(callback_signals)
-def keyboard_opener(request, *args, **kwargs):
-    CallBack.keyboard_open(request)
-
 
 @receiver(callback_signals)
 @CallBack.button_press('test')

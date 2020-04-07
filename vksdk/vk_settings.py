@@ -10,10 +10,10 @@ class ClientCredentials:
             self.client_secret = self._json.get('client_secret')
             self.community_key = self._json.get('community_key')
 
-
+# Load credentials from json
 AUTH_CLIENT = ClientCredentials('vk_app.json')
-#AUTH_CLIENT = 'test'
 
+# Settings for vk group
 CALLBACK_URL = 'callback_url/'
 CALLBACK_GROUPID = '192788863'
-
+CALLBACK_CODE = 'e533a712'

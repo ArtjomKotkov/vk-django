@@ -1,11 +1,12 @@
-from .vk_settings import *
 import logging
 import requests
 import json
 import random
-from .models import KeyBoards, Carousels
-from django.http import HttpResponse
+
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
+
+from .vk_settings import *
+from .models import KeyBoards, Carousels
 
 # BUTTONS COLORS
 BLUE = 'primary'  # blue
@@ -22,27 +23,19 @@ VK_APPS = 'open_app'
 
 
 class CallBack:
-
-    @staticmethod
-    def session_check(request):
-        # check host
-        if request.POST.get('confirmation', None) is not None and request.POST.get('group_id') == CALLBACK_GROUPID:
-            response = requests.get(
-                f'https://api.vk.com/method/groups.getCallbackConfirmationCode?group_id={CALLBACK_GROUPID}&'
-                f'access_token={AUTH_CLIENT.community_key}&'
-                f'v=5.103')
-            return HttpResponse(content=response.json().response.code, status=200)
-
-    @staticmethod
-    def show_child_keyboard(request):
-        payload = dict(request.POST.get('object').get('payload'))
-        keyboard = KeyBoard.load_keyboard(payload.get('keyboard'))
-        # send new keyboard
+    """
+    Vk callback api realization, include events decorators.
+    Event's function are in callback_signals.py.
+    """
 
     # MESSAGES EVENTS DECORATORS
-
+    # CUSTOM EVENTS
     @staticmethod
     def button_press(name):
+        """
+        Callback will be called when payload contains name param, button with name was pressed.
+        """
+
         def keyboard_inner(func):
             def wrapper(request, *args, **kwargs):
                 if request.get('type') == 'message_new' and request['object'].get('payload').get('name') == name:
@@ -56,6 +49,9 @@ class CallBack:
 
     @staticmethod
     def keyboard_open(request):
+        """
+        Callback will be called when payload contains type = keyboard, send new keyboard to user.
+        """
         if request.get('type') == 'message_new' and request['object'].get('payload').get('type') == 'keyboard' and \
                 request['object'].get('payload').get('id', None) is not None:
             user = request['object']['from_id']
@@ -63,6 +59,7 @@ class CallBack:
                                              keyboard=KeyBoard.load_keyboard(id=request['object']['payload']['id']))
             return response
 
+    # STANDART EVENTS
     @staticmethod
     def message_new(func):
         def wrapper(request, *args, **kwargs):
@@ -77,28 +74,360 @@ class CallBack:
     @staticmethod
     def message_reply(func):
         def wrapper(request, *args, **kwargs):
-            return func(request, *args, **kwargs) if request.get('type') == 'message_reply' else None
+            if request.get("type") == "message_reply":
+                return func(request, *args, **kwargs)
+            else:
+                return
 
         return wrapper
 
     @staticmethod
     def message_edit(func):
         def wrapper(request, *args, **kwargs):
-            return func(request, *args, **kwargs) if request.get('type') == 'message_edit' else None
+            if request.get("type") == "message_edit":
+                return func(request, *args, **kwargs)
+            else:
+                return
 
         return wrapper
 
     @staticmethod
     def message_allow(func):
         def wrapper(request, *args, **kwargs):
-            return func(request, *args, **kwargs) if request.get('type') == 'message_allow' else None
+            if request.get("type") == "message_allow":
+                return func(request, *args, **kwargs)
+            else:
+                return
 
         return wrapper
 
     @staticmethod
     def message_deny(func):
         def wrapper(request, *args, **kwargs):
-            return func(request, *args, **kwargs) if request.get('type') == 'message_deny' else None
+            if request.get("type") == "message_deny":
+                return func(request, *args, **kwargs)
+            else:
+                return
+
+        return wrapper
+
+    @staticmethod
+    def photo_new(func):
+        def wrapper(request, *args, **kwargs):
+            if request.get("type") == "photo_new":
+                return func(request, *args, **kwargs)
+            else:
+                return
+
+        return wrapper
+
+    @staticmethod
+    def photo_comment_new(func):
+        def wrapper(request, *args, **kwargs):
+            if request.get("type") == "photo_comment_new":
+                return func(request, *args, **kwargs)
+            else:
+                return
+
+        return wrapper
+
+    @staticmethod
+    def photo_comment_edit(func):
+        def wrapper(request, *args, **kwargs):
+            if request.get("type") == "photo_comment_edit":
+                return func(request, *args, **kwargs)
+            else:
+                return
+
+        return wrapper
+
+    @staticmethod
+    def photo_comment_restore(func):
+        def wrapper(request, *args, **kwargs):
+            if request.get("type") == "photo_comment_restore":
+                return func(request, *args, **kwargs)
+            else:
+                return
+
+        return wrapper
+
+    @staticmethod
+    def photo_comment_delete(func):
+        def wrapper(request, *args, **kwargs):
+            if request.get("type") == "photo_comment_delete":
+                return func(request, *args, **kwargs)
+            else:
+                return
+
+        return wrapper
+
+    @staticmethod
+    def  # Audio(func):
+        def wrapper(request, *args, **kwargs):
+            if request.get("type") == "#Audio":
+                return func(request, *args, **kwargs)
+            else:
+                return
+
+        return wrapper
+
+    @staticmethod
+    def audio_new(func):
+        def wrapper(request, *args, **kwargs):
+            if request.get("type") == "audio_new":
+                return func(request, *args, **kwargs)
+            else:
+                return
+
+        return wrapper
+
+    @staticmethod
+    def video_new(func):
+        def wrapper(request, *args, **kwargs):
+            if request.get("type") == "video_new":
+                return func(request, *args, **kwargs)
+            else:
+                return
+
+        return wrapper
+
+    @staticmethod
+    def video_comment_new(func):
+        def wrapper(request, *args, **kwargs):
+            if request.get("type") == "video_comment_new":
+                return func(request, *args, **kwargs)
+            else:
+                return
+
+        return wrapper
+
+    @staticmethod
+    def video_comment_edit(func):
+        def wrapper(request, *args, **kwargs):
+            if request.get("type") == "video_comment_edit":
+                return func(request, *args, **kwargs)
+            else:
+                return
+
+        return wrapper
+
+    @staticmethod
+    def video_comment_restore(func):
+        def wrapper(request, *args, **kwargs):
+            if request.get("type") == "video_comment_restore":
+                return func(request, *args, **kwargs)
+            else:
+                return
+
+        return wrapper
+
+    @staticmethod
+    def video_comment_delete(func):
+        def wrapper(request, *args, **kwargs):
+            if request.get("type") == "video_comment_delete":
+                return func(request, *args, **kwargs)
+            else:
+                return
+
+        return wrapper
+
+    @staticmethod
+    def wall_post_new(func):
+        def wrapper(request, *args, **kwargs):
+            if request.get("type") == "wall_post_new":
+                return func(request, *args, **kwargs)
+            else:
+                return
+
+        return wrapper
+
+    @staticmethod
+    def wall_repost(func):
+        def wrapper(request, *args, **kwargs):
+            if request.get("type") == "wall_repost":
+                return func(request, *args, **kwargs)
+            else:
+                return
+
+        return wrapper
+
+    @staticmethod
+    def wall_reply_new(func):
+        def wrapper(request, *args, **kwargs):
+            if request.get("type") == "wall_reply_new":
+                return func(request, *args, **kwargs)
+            else:
+                return
+
+        return wrapper
+
+    @staticmethod
+    def wall_reply_edit(func):
+        def wrapper(request, *args, **kwargs):
+            if request.get("type") == "wall_reply_edit":
+                return func(request, *args, **kwargs)
+            else:
+                return
+
+        return wrapper
+
+    @staticmethod
+    def wall_reply_restore(func):
+        def wrapper(request, *args, **kwargs):
+            if request.get("type") == "wall_reply_restore":
+                return func(request, *args, **kwargs)
+            else:
+                return
+
+        return wrapper
+
+    @staticmethod
+    def wall_reply_delete(func):
+        def wrapper(request, *args, **kwargs):
+            if request.get("type") == "wall_reply_delete":
+                return func(request, *args, **kwargs)
+            else:
+                return
+
+        return wrapper
+
+    @staticmethod
+    def board_post_new(func):
+        def wrapper(request, *args, **kwargs):
+            if request.get("type") == "board_post_new":
+                return func(request, *args, **kwargs)
+            else:
+                return
+
+        return wrapper
+
+    @staticmethod
+    def board_post_edit(func):
+        def wrapper(request, *args, **kwargs):
+            if request.get("type") == "board_post_edit":
+                return func(request, *args, **kwargs)
+            else:
+                return
+
+        return wrapper
+
+    @staticmethod
+    def board_post_restore(func):
+        def wrapper(request, *args, **kwargs):
+            if request.get("type") == "board_post_restore":
+                return func(request, *args, **kwargs)
+            else:
+                return
+
+        return wrapper
+
+    @staticmethod
+    def board_post_delete(func):
+        def wrapper(request, *args, **kwargs):
+            if request.get("type") == "board_post_delete":
+                return func(request, *args, **kwargs)
+            else:
+                return
+
+        return wrapper
+
+    @staticmethod
+    def market_comment_new(func):
+        def wrapper(request, *args, **kwargs):
+            if request.get("type") == "market_comment_new":
+                return func(request, *args, **kwargs)
+            else:
+                return
+
+        return wrapper
+
+    @staticmethod
+    def market_comment_edit(func):
+        def wrapper(request, *args, **kwargs):
+            if request.get("type") == "market_comment_edit":
+                return func(request, *args, **kwargs)
+            else:
+                return
+
+        return wrapper
+
+    @staticmethod
+    def market_comment_restore(func):
+        def wrapper(request, *args, **kwargs):
+            if request.get("type") == "market_comment_restore":
+                return func(request, *args, **kwargs)
+            else:
+                return
+
+        return wrapper
+
+    @staticmethod
+    def market_comment_delete(func):
+        def wrapper(request, *args, **kwargs):
+            if request.get("type") == "market_comment_delete":
+                return func(request, *args, **kwargs)
+            else:
+                return
+
+        return wrapper
+
+    @staticmethod
+    def group_leave(func):
+        def wrapper(request, *args, **kwargs):
+            if request.get("type") == "group_leave":
+                return func(request, *args, **kwargs)
+            else:
+                return
+
+        return wrapper
+
+    @staticmethod
+    def group_join(func):
+        def wrapper(request, *args, **kwargs):
+            if request.get("type") == "group_join":
+                return func(request, *args, **kwargs)
+            else:
+                return
+
+        return wrapper
+
+    @staticmethod
+    def user_block(func):
+        def wrapper(request, *args, **kwargs):
+            if request.get("type") == "user_block":
+                return func(request, *args, **kwargs)
+            else:
+                return
+
+        return wrapper
+
+    @staticmethod
+    def user_unblock(func):
+        def wrapper(request, *args, **kwargs):
+            if request.get("type") == "user_unblock":
+                return func(request, *args, **kwargs)
+            else:
+                return
+
+        return wrapper
+
+    @staticmethod
+    def poll_vote_new(func):
+        def wrapper(request, *args, **kwargs):
+            if request.get("type") == "poll_vote_new":
+                return func(request, *args, **kwargs)
+            else:
+                return
+
+        return wrapper
+
+    @staticmethod
+    def group_officers_edit(func):
+        def wrapper(request, *args, **kwargs):
+            if request.get("type") == "group_officers_edit":
+                return func(request, *args, **kwargs)
+            else:
+                return
 
         return wrapper
 
@@ -302,7 +631,7 @@ class Carousel:
         return element
 
     def add_exit_element(self, title, description, photo_id, keyboard, link=None):
-        #first button - open keuboard
+        # first button - open keuboard
         if len(self.elements) >= 10:
             raise ValidationError('Carousel can contain only 10 elements')
         element = self.CarouselElement(title, description, photo_id, link)
